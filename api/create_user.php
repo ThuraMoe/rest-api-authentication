@@ -31,9 +31,18 @@
     $response = new Response();
 
     //create user
-    if(!empty($user->firstname) && !empty($user->email) && !empty($user->password) && $user->create()) {
-        // response
-        $response->result(200, "User was created", null);
+    if(!empty($user->firstname) && !empty($user->email) && !empty($user->password)) {
+        // check user input email is already exists or not
+        if($user->checkEmailExists() == false) {
+            if($user->create()) {
+                $response->result(200, "User was created.", null);
+            } else {
+                $response->result(401, "Fail to create user.", null);
+            }
+        } else {
+            // if email is already exists
+            $response->result(401, "Email already exists.", null);
+        }
     } else {
         // response
         $response->result(400, "Unable to create user", null);

@@ -56,6 +56,10 @@
     <script>
         // jQuery codes
         $(document).ready(function(){
+
+            // for page load
+            showHomePage();
+
             // show sign up / registration form
             $(document).on('click', '#sign_up', function(){
          
@@ -104,9 +108,13 @@
                     contentType : 'application/json',
                     data : form_data,
                     success : function(result) {
-                        // if response is a success, tell the user it was a successful sign up & empty the input boxes
-                        $('#response').html("<div class='alert alert-success'>Successful sign up. Please login.</div>");
-                        sign_up_form.find('input').val('');
+                        if(result.status == 200) {
+                            // if response is a success, tell the user it was a successful sign up & empty the input boxes
+                            $('#response').html("<div class='alert alert-success'>Successful sign up. Please login.</div>");
+                            sign_up_form.find('input').val('');
+                        } else {
+                            $('#response').html("<div class='alert alert-danger'>"+result.message+"</div>");
+                        }
                     },
                     error: function(xhr, resp, text){
                         // on error, tell the user sign up failed
@@ -217,13 +225,17 @@
                     contentType : 'application/json',
                     data : form_data,
                     success : function(result) {
-                
-                        // store jwt to cookie
-                        setCookie("jwt", result.jwt, 1);
-                
-                        // show home page & tell the user it was a successful login
-                        showHomePage();
-                        $('#response').html("<div class='alert alert-success'>Successful login.</div>");
+                        console.log(result);
+                        if(result.status == 200) {
+                            // store jwt to cookie
+                            setCookie("jwt", result.jwt, 1);
+                    
+                            // show home page & tell the user it was a successful login
+                            showHomePage();
+                            $('#response').html("<div class='alert alert-success'>Successful login.</div>");
+                        } else {
+                            $('#response').html("<div class='alert alert-danger'>Login failed.</div>");
+                        }
                 
                     },
                     error: function(xhr, resp, text){

@@ -45,7 +45,6 @@ class User {
             return true;
         }
         return false;
-
     }
 
     // check user email exists in db
@@ -123,6 +122,31 @@ class User {
             return true;
         }
         return false;
+    }
+
+    // check email already exists
+    public function checkEmailExists() {
+        $query = "SELECT * FROM ".$this->table_name." WHERE email=:email";
+        $stmt = $this->conn->prepare($query);
+
+        // sanitize email
+        $this->email = htmlspecialchars(strip_tags($this->email));
+
+        // bind values
+        $stmt->bindParam(':email', $this->email);
+
+        // execute query
+        $stmt->execute();
+
+        // get row count
+        $num = $stmt->rowCount();
+
+        if($num > 0) {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
 
