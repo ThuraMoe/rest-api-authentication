@@ -31,7 +31,7 @@
     $response = new Response();
 
     //create user
-    if(!empty($user->firstname) && !empty($user->email) && !empty($user->password)) {
+    if(!empty($user->firstname) && !empty($user->email) && !empty($user->password) && $user->create()) {
         // response
         $response->result(200, "User was created", null);
     } else {

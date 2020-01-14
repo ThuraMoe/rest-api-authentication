@@ -28,7 +28,7 @@
 
             // reply response
             $response->result(200, "Access granted.", $decode_jwt);
-
+            
         } catch (Exception $e) {
             // if decode fails, it means jwt is invalid
             $response->result(401, "Access denined.", $e->getMessage());

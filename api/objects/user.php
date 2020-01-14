@@ -38,7 +38,7 @@ class User {
 
         // hash the password before save
         $pwd_hash = password_hash($this->password, PASSWORD_BCRYPT);
-        $stmt->bindParam(':email', $pwd_hash);
+        $stmt->bindParam(':password', $pwd_hash);
 
         //execute query
         if($stmt->execute()) {
