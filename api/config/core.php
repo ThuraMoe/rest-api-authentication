@@ -9,7 +9,8 @@
     $key = "#asdfkjhgw!~332kdjuksd0032-kfnhyehfenfjljdfuf!@#*(;kjihifg42";
     $iss = "http://localhost/api-authentication-REST/";
     $aud = "http://localhost/api-authentication-REST/";
-    $iat = 1578910513;
-    $nbf = 1578910595;
+    $iat = time();
+    $nbf = $iat + 10; // not before in seconds
+    $exp = $iat + 60; // expire time in seconds
 
 ?>
