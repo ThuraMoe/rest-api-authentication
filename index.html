@@ -304,7 +304,7 @@
             $(document).on('click', '#update_account', function(){
                 showUpdateAccountForm();
             });
-            function showUpdateAccountForm(){
+            function showUpdateAccountForm() {
                 // validate jwt to verify access
                 var jwt = getCookie('jwt');
                 $.post("api/validate_token.php", JSON.stringify({ jwt:jwt })).done(function(result) {
@@ -341,6 +341,7 @@
                         clearResponse();
                         $('#content').html(html);
                     } else {
+                        showLoggedOutMenu();
                         $('#response').html("<div class='alert alert-danger'>"+result.message+"</div>");
                     }
                 }).fail(function(result){
@@ -374,7 +375,7 @@
                     contentType : 'application/json',
                     data : form_data,
                     success : function(result) {
-                
+                        console.log(result);
                         // tell the user account was updated
                         $('#response').html("<div class='alert alert-success'>Account was updated.</div>");
                 
