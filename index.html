@@ -225,7 +225,6 @@
                     contentType : 'application/json',
                     data : form_data,
                     success : function(result) {
-                        console.log(result);
                         if(result.status == 200) {
                             // store jwt to cookie
                             setCookie("jwt", result.jwt, 1);
@@ -260,7 +259,6 @@
                 // validate jwt to verify access
                 var jwt = getCookie('jwt');
                 $.post("api/validate_token.php", JSON.stringify({ jwt:jwt })).done(function(result) {
-                    console.log(result);
                     // if valid, show homepage
                     if(result.status == 200) {
                         var html = `
@@ -375,7 +373,6 @@
                     contentType : 'application/json',
                     data : form_data,
                     success : function(result) {
-                        console.log(result);
                         // tell the user account was updated
                         $('#response').html("<div class='alert alert-success'>Account was updated.</div>");
                 
