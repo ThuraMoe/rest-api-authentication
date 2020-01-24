@@ -1,49 +1,49 @@
 <?php
     // required headers
-    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Origin: http://localhost/rest-api-authentication-example/");
     header("Content-Type: application/json; charset=UTF-8");
     header("Access-Control-Allow-Methods: POST");
     header("Access-Control-Max-Age: 3600");
     header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
     
-    // connect files
-    include_once 'config/database.php';
     include_once 'config/core.php';
+    include_once 'config/database.php';
     include_once 'objects/user.php';
     include_once 'objects/Response.php';
     include_once '../libs/vendor/autoload.php';
     use \Firebase\JWT\JWT;
 
-    // create database connection
+    // get database connection
     $database = new Database();
     $db = $database->getConnection();
-
-    // instantiate response object
-    $response = new Response();
 
     // instantiate user object
     $user = new User($db);
 
+    // instantiate response object
+    $response = new Response();
+
     // get posted data
     $data = json_decode(file_get_contents("php://input"));
-    $jwt = isset($data->jwt)? $data->jwt : "";
 
+    // get refresh token
+    $jwt = isset($data->refresh_token)? $data->refresh_token : "";
+
+    // check in db
     if($jwt) {
+        // if decode successed show user details
         try {
-            // if decode succeed, show user details
-            $decode = JWT::decode($jwt, $key, array('HS256'));
+            // decode jwt
+            $decode_jwt = JWT::decode($jwt, $refresh_key, array('HS256'));
+            $user->id = $decode_jwt->data->id;
+            $user->refresh_token = $jwt;
 
-            // set user property values
-            $user->firstname = $data->firstname;
-            $user->lastname = $data->lastname;
-            $user->email = $data->email;
-            $user->password = $data->password;
-            $user->id = $decode->data->id;
+            // check refresh token is valid and get user info
+            $is_valid = $user->checkRefreshToken();
 
-            // update the user record
-            if($user->update()) {
-                // regenerate jwt will be here
-                $access_token = array(
+            if($is_valid) {
+                // generate access token
+                $access_payload = array(
                     "iss" => $access_iss,
                     "aud" => $access_aud,
                     "iat" => $access_iat,
@@ -56,18 +56,19 @@
                         "email" => $user->email
                     )
                 );
-                $jwt = JWT::encode($access_token, $access_key);
-                $response->result(200, "User was updated.", $jwt);
+                $access_token = JWT::encode($access_payload, $access_key);
+
+                // reply response
+                $response->result(200, "Access granted.", $access_token);
             } else {
-                // update failed
-                $response->result(401, "Unable to update user.", null);
+                // reply response
+                $response->result(401, "Access Denined.", null);
             }
         } catch (Exception $e) {
-            // fail to decode
-            $response->result(401, "Decode failed.".$e->getMessage(), null);
+            // if decode fails, it means jwt is invalid
+            $response->result(401, "Access denined.", $e->getMessage());
         }
     } else {
-        // if empty jwt, can't access
+        // if jwt is empty
         $response->result(401, "Access denined.", null);
     }
-

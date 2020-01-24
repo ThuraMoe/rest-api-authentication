@@ -3,11 +3,11 @@
 class Response {
 
     // response result
-    public function result($status, $message, $jwt) {
+    public function result($status, $message, $access_token) {
         echo json_encode(array(
             'status' => $status, 
             'message' => $message, 
-            'jwt' => $jwt
+            'jwt' => $access_token
         ));
     }
 }

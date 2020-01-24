@@ -11,6 +11,7 @@ class User {
     public $lastname;
     public $email;
     public $password;
+    public $refresh_token;
 
     //constructor
     public function __construct($db) {
@@ -147,6 +148,53 @@ class User {
             return false;
         }
 
+    }
+
+    // save refresh token
+    public function saveRefreshToken() {
+        $query = "UPDATE ".$this->table_name." SET refresh_token=:token WHERE id=:id";
+        $stmt = $this->conn->prepare($query);
+
+        // bind values
+        $stmt->bindParam(':token', $this->refresh_token);
+        $stmt->bindParam(':id', $this->id);
+
+        // excute the query
+        if($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    // check refresh token
+    public function checkRefreshToken() {
+        $query = "SELECT id, firstname, lastname, email, refresh_token FROM ".$this->table_name." WHERE id=:id AND refresh_token=:refresh_token";
+        $stmt = $this->conn->prepare($query);
+
+        // bind values
+        $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(':refresh_token', $this->refresh_token);
+
+        // execute query
+        $stmt->execute();
+
+        // get row count
+        $num = $stmt->rowCount();
+
+        if($num > 0) {
+            // get rcord details
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // assign value to object property
+            $this->id = $row['id'];
+            $this->firstname = $row['firstname'];
+            $this->lastname = $row['lastname'];
+            $this->refresh_token = $row['refresh_token'];
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

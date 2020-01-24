@@ -154,8 +154,10 @@
             
             // show login page
             function showLoginPage(){
-                // remove jwt
-                setCookie("jwt", "", 1);
+                // remove access_token
+                setCookie("access_token", "", 1);
+                // remove refresh_token
+                setCookie("refresh_token", "", 1);
 
                 // login page html
                 var html = `
@@ -226,8 +228,11 @@
                     data : form_data,
                     success : function(result) {
                         if(result.status == 200) {
-                            // store jwt to cookie
-                            setCookie("jwt", result.jwt, 1);
+                            // store access_token to cookie
+                            setCookie("access_token", result.jwt[0], 1);
+
+                            // store refresh_token to cookie
+                            setCookie("refresh_token", result.jwt[1], 1);
                     
                             // show home page & tell the user it was a successful login
                             showHomePage();
@@ -255,10 +260,11 @@
             
             // show home page
             function showHomePage(){
-            
+                // check access token
+                checkToken();
                 // validate jwt to verify access
-                var jwt = getCookie('jwt');
-                $.post("api/validate_token.php", JSON.stringify({ jwt:jwt })).done(function(result) {
+                var access_token = getCookie('access_token');
+                $.post("api/validate_token.php", JSON.stringify({ jwt:access_token })).done(function(result) {
                     // if valid, show homepage
                     if(result.status == 200) {
                         var html = `
@@ -266,7 +272,7 @@
                                 <div class="card-header">Welcome to Home!</div>
                                 <div class="card-body">
                                     <h5 class="card-title">You are logged in.</h5>
-                                    <p class="card-text">You won't be able to access the home and account pages if you are not logged in.</p>
+                                    <p class="card-text">Welcome Back.</p>
                                 </div>
                             </div>
                             `;
@@ -303,9 +309,11 @@
                 showUpdateAccountForm();
             });
             function showUpdateAccountForm() {
+                // check token validation
+                checkToken();
                 // validate jwt to verify access
-                var jwt = getCookie('jwt');
-                $.post("api/validate_token.php", JSON.stringify({ jwt:jwt })).done(function(result) {
+                var access_token = getCookie('access_token');
+                $.post("api/validate_token.php", JSON.stringify({ jwt:access_token })).done(function(result) {
                     // if response is valid, put user details in the form
                     if(result.status == 200) {
                         var html = `
@@ -355,13 +363,13 @@
                 var update_account_form=$(this);
 
                 // validate jwt to verify access
-                var jwt = getCookie('jwt');
+                var access_token = getCookie('access_token');
 
                 // get form data
                 var update_account_form_obj = update_account_form.serializeObject()
                 
                 // add jwt on the object
-                update_account_form_obj.jwt = jwt;
+                update_account_form_obj.jwt = access_token;
                 
                 // convert object to json string
                 var form_data=JSON.stringify(update_account_form_obj);
@@ -377,7 +385,7 @@
                         $('#response').html("<div class='alert alert-success'>Account was updated.</div>");
                 
                         // store new jwt to coookie
-                        setCookie("jwt", result.jwt, 1);
+                        setCookie("access_token", result.jwt, 1);
                     },
                     error: function(xhr, resp, text){
                         if(xhr.responseJSON.message=="Unable to update user."){
@@ -398,6 +406,39 @@
                 showLoginPage();
                 $('#response').html("<div class='alert alert-info'>You are logged out.</div>");
             });
+
+            // check access_token expiration
+            function checkToken() {
+                var access_token = getCookie('access_token');
+                $.post("api/validate_token.php", JSON.stringify({jwt:access_token}))
+                .done(function(result){
+                    console.log(result);
+                    // if expire, then sent refresh token and get new access token
+                    if(result.status == 408) {
+                        refreshToken();
+                    }
+                }).fail(function(result){
+                    alert("Something wrong! Please refresh page and try again.");
+                });
+            }
+
+            // get new access token
+            function refreshToken() {
+                var refresh_token = getCookie('refresh_token');
+                $.post("api/refresh_token.php", JSON.stringify({ refresh_token:refresh_token })).done(function(result) {
+                    // if valid, show homepage
+                    if(result.status == 200) {
+                        setCookie('access_token', result.jwt, 1);
+                        return true;
+                    } else {
+                        setCookie('access_token', '');
+                        setCookie('refresh_token', '');
+                        return false;
+                    }
+                }).fail(function(result){
+                    return false;
+                });
+            }
             
         });
     </script>

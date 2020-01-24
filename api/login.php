@@ -33,12 +33,13 @@
     
     // check email exists and password is correct
     if($email_exists && password_verify($data->password, $user->password)) {
-        $payload = array(
-            "iss" => $iss,
-            "aud" => $aud,
-            "iat" => $iat,
-            "nbf" => $nbf,
-            "exp" => $exp,
+        // generate access jwt
+        $access_payload = array(
+            "iss" => $access_iss,
+            "aud" => $access_aud,
+            "iat" => $access_iat,
+            "nbf" => $access_nbf,
+            "exp" => $access_exp,
             "data" => array(
                 "id" => $user->id,
                 "firstname" => $user->firstname,
@@ -46,12 +47,25 @@
                 "email" => $user->email
             )
         );
-
-        // generate jwt
-        $jwt = JWT::encode($payload, $key);
+        $access_token = JWT::encode($access_payload, $access_key);
+        
+        // generate refresh jwt
+        $refresh_payload = array(
+            "iss" => $refresh_iss,
+            "aud" => $refresh_aud,
+            "iat" => $refresh_iat,
+            "exp" => $refresh_exp,
+            "data" => array(
+                "id" => $user->id
+            )
+        );
+        $refresh_token = JWT::encode($refresh_payload, $refresh_key);
+        $user->refresh_token = $refresh_token;
+        // save refresh token into databse for login user
+        $user->saveRefreshToken();
 
         // reply response
-        $response->result(200, "Successful login.", $jwt);
+        $response->result(200, "Successful login.", [$access_token, $refresh_token]);
     } else {
         // login failed
         $response->result(401, "Login failed.", null);

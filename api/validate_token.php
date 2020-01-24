@@ -18,20 +18,20 @@
     $data = json_decode(file_get_contents("php://input"));
 
     // get jwt
-    $jwt = isset($data->jwt)? $data->jwt : "";
+    $access_token = isset($data->jwt)? $data->jwt : "";
 
-    if($jwt) {
+    if($access_token) {
         // if decode successed show user details
         try {
             // decode jwt
-            $decode_jwt = JWT::decode($jwt, $key, array('HS256'));
+            $decode_jwt = JWT::decode($access_token, $access_key, array('HS256'));
 
             // reply response
             $response->result(200, "Access granted.", $decode_jwt);
             
-        } catch (Exception $e) {
+        } catch (\Firebase\JWT\ExpiredException $e) {
             // if decode fails, it means jwt is invalid
-            $response->result(401, "Access denined.", $e->getMessage());
+            $response->result(408, "Token Expire!", $e->getMessage());
         }
     } else {
         // if jwt is empty
